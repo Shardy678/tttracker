@@ -24,6 +24,8 @@ func main() {
 		c.File("./frontend/build/index.html")
 	})
 
+	router.Static("/assets", "./frontend/build/assets")
+
 	api := router.Group("/api")
 	{
 		api.GET("/players", func(c *gin.Context) {
