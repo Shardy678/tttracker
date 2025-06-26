@@ -31,16 +31,21 @@ func GetAllPlayers(db *sql.DB) ([]Player, error) {
 	return players, nil
 }
 
-func CreatePlayer(db *sql.DB, name string) (int64, error) {
+func CreatePlayer(db *sql.DB, name string) (*Player, error) {
 	result, err := db.Exec("INSERT INTO players (name) VALUES (?)", name)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	id, err := result.LastInsertId()
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return id, nil
+
+	player := &Player{
+		ID:   int(id),
+		Name: name,
+	}
+	return player, nil
 }
 
 func GetPlayerByID(db *sql.DB, id int) (*Player, error) {

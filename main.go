@@ -50,12 +50,12 @@ func main() {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 				return
 			}
-			id, err := models.CreatePlayer(db, player.Name)
+			createdPlayer, err := models.CreatePlayer(db, player.Name)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create player"})
 				return
 			}
-			c.JSON(http.StatusCreated, gin.H{"id": id})
+			c.JSON(http.StatusCreated, createdPlayer)
 		})
 		api.POST("/matches", func(c *gin.Context) {
 			var match models.Match
