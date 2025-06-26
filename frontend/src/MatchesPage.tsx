@@ -6,6 +6,7 @@ type Match = {
   player_b: number;
   score_a: number;
   score_b: number;
+  played_at: string;
 };
 
 type Player = {
@@ -14,8 +15,17 @@ type Player = {
   created_at: string;
 };
 
-export default function MatchesPage({ players }: { players: Player[] }) {
-  const [matches, setMatches] = useState<any[]>([]);
+type MatchesPageProps = {
+  players: Player[];
+  setMatches: (matches: Match[]) => void;
+  matches: Match[];
+};
+
+export default function MatchesPage({
+  players,
+  setMatches,
+  matches,
+}: MatchesPageProps) {
   const [player1, setPlayer1] = useState<string | null>(null);
   const [player2, setPlayer2] = useState<string | null>(null);
   const [score1, setScore1] = useState<number | null>(null);
@@ -42,7 +52,7 @@ export default function MatchesPage({ players }: { players: Player[] }) {
       });
       if (!response.ok) throw new Error("Failed to create match");
       const data = await response.json();
-      setMatches((prev) => [...prev, data]);
+      setMatches([...matches, data]);
     } catch (error) {
       console.error(error);
     }
@@ -70,7 +80,9 @@ export default function MatchesPage({ players }: { players: Player[] }) {
           <li key={match.id}>
             {match.player_a} vs {match.player_b} - {match.score_a}:
             {match.score_b}{" "}
-            <span>({new Date(match.played_at).toLocaleString()})</span>
+            <span>
+              ({new Date(Date.parse(match.played_at)).toLocaleString()})
+            </span>
           </li>
         ))}
         {matches.length === 0 && <li>Нет матчей</li>}
