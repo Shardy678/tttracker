@@ -2,13 +2,14 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 )
 
 type Match struct {
 	ID       int       `json:"id"`
-	PlayerA  int       `json:"player_a"`
-	PlayerB  int       `json:"player_b"`
+	PlayerA  string    `json:"player_a"`
+	PlayerB  string    `json:"player_b"`
 	ScoreA   int       `json:"score_a"`
 	ScoreB   int       `json:"score_b"`
 	PlayedAt time.Time `json:"played_at"`
@@ -36,16 +37,24 @@ func GetAllMatches(db *sql.DB) ([]Match, error) {
 
 	return matches, nil
 }
-func CreateMatch(db *sql.DB, playerA, playerB, scoreA, scoreB int) (int64, error) {
-	result, err := db.Exec("INSERT INTO matches (player_a, player_b, score_a, score_b) VALUES (?, ?, ?, ?)", playerA, playerB, scoreA, scoreB)
-	if err != nil {
-		return 0, err
-	}
-	id, err := result.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
-	return id, nil
+
+func CreateMatch(db *sql.DB, playerA, playerB string, scoreA, scoreB int) (int64, error) {
+    if playerA == "" || playerB == "" {
+        return 0, fmt.Errorf("invalid input: player names required")
+    }
+    if scoreA < 0 || scoreB < 0 {
+        return 0, fmt.Errorf("invalid input: scores must be non-negative")
+    }
+
+    result, err := db.Exec("INSERT INTO matches (player_a, player_b, score_a, score_b) VALUES (?, ?, ?, ?)", playerA, playerB, scoreA, scoreB)
+    if err != nil {
+        return 0, err
+    }
+    id, err := result.LastInsertId()
+    if err != nil {
+        return 0, err
+    }
+    return id, nil
 }
 
 func GetMatchByID(db *sql.DB, id int) (*Match, error) {
@@ -53,7 +62,7 @@ func GetMatchByID(db *sql.DB, id int) (*Match, error) {
 	var match Match
 	if err := row.Scan(&match.ID, &match.PlayerA, &match.PlayerB, &match.ScoreA, &match.ScoreB, &match.PlayedAt); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil // No match found
+			return nil, nil 
 		}
 		return nil, err
 	}

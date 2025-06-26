@@ -65,6 +65,11 @@ func main() {
 			}
 			id, err := models.CreateMatch(db, match.PlayerA, match.PlayerB, match.ScoreA, match.ScoreB)
 			if err != nil {
+				// Return 400 for validation errors
+				if err.Error() == "Invalid input: player names required" || err.Error() == "Invalid input: scores must be non-negative" {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create match"})
 				return
 			}
@@ -101,7 +106,6 @@ func main() {
 		api.DELETE("/players/:id", func(c *gin.Context) {
 			id := c.Param("id")
 			playerID, _ := strconv.Atoi(id)
-			// Check if player exists before deleting
 			player, err := models.GetPlayerByID(db, playerID)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch player"})
@@ -120,7 +124,6 @@ func main() {
 		api.DELETE("/matches/:id", func(c *gin.Context) {
 			id := c.Param("id")
 			matchID, _ := strconv.Atoi(id)
-			// Check if match exists before deleting
 			match, err := models.GetMatchByID(db, matchID)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch match"})
@@ -138,12 +141,10 @@ func main() {
 		})
 	}
 
-	// Define a simple GET endpoint
 	router.GET("/hello", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "Hello, World!"})
 	})
 
-	// Start the server on port 8080
 	if err := router.Run(":8080"); err != nil {
 		log.Fatalf("Failed to run server: %v", err)
 	}
