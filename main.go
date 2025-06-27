@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"tttracker/models"
 	"tttracker/storage"
 
@@ -33,55 +34,69 @@ func main() {
 		api.GET("/players", func(c *gin.Context) {
 			players, err := models.GetAllPlayers(db)
 			if err != nil {
+				log.Printf("GetAllPlayers error: %v", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch players"})
 				return
 			}
 			c.JSON(http.StatusOK, players)
 		})
+
 		api.GET("/matches", func(c *gin.Context) {
 			matches, err := models.GetAllMatches(db)
 			if err != nil {
+				log.Printf("GetAllMatches error: %v", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch matches"})
 				return
 			}
 			c.JSON(http.StatusOK, matches)
 		})
+
 		api.POST("/players", func(c *gin.Context) {
-			var player models.Player
-			if err := c.ShouldBindJSON(&player); err != nil {
+			var input struct {
+				Name string `json:"name"`
+			}
+			if err := c.ShouldBindJSON(&input); err != nil {
+				log.Printf("CreatePlayer: invalid input JSON: %v", err)
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 				return
 			}
-			createdPlayer, err := models.CreatePlayer(db, player.Name)
+			createdPlayer, err := models.CreatePlayer(db, input.Name)
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create player"})
+				log.Printf("CreatePlayer error: %v", err)
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 				return
 			}
 			c.JSON(http.StatusCreated, createdPlayer)
 		})
+
 		api.POST("/matches", func(c *gin.Context) {
 			var match models.Match
 			if err := c.ShouldBindJSON(&match); err != nil {
+				log.Printf("CreateMatch: invalid input JSON: %v", err)
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 				return
 			}
-			id, err := models.CreateMatch(db, match.PlayerA, match.PlayerB, match.ScoreA, match.ScoreB)
+			log.Printf("Creating match: playerAID=%d, playerBID=%d, scoreA=%d, scoreB=%d", match.PlayerAID, match.PlayerBID, match.ScoreA, match.ScoreB)
+			id, err := models.CreateMatch(db, match.PlayerAID, match.PlayerBID, match.ScoreA, match.ScoreB)
 			if err != nil {
-				// Return 400 for validation errors
-				if err.Error() == "Invalid input: player names required" || err.Error() == "Invalid input: scores must be non-negative" {
+				log.Printf("CreateMatch error: %v", err)
+				if strings.Contains(err.Error(), "does not exist") || strings.Contains(err.Error(), "invalid input") {
 					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-					return
+				} else {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create match"})
 				}
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create match"})
 				return
 			}
+			log.Printf("Match created: id=%d", id)
 			c.JSON(http.StatusCreated, gin.H{"id": id})
 		})
+
 		api.GET("/players/:id", func(c *gin.Context) {
 			id := c.Param("id")
 			playerID, _ := strconv.Atoi(id)
 			player, err := models.GetPlayerByID(db, playerID)
 			if err != nil {
+				log.Printf("GetPlayerByID error: %v", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch player"})
 				return
 			}
@@ -91,11 +106,13 @@ func main() {
 			}
 			c.JSON(http.StatusOK, player)
 		})
+
 		api.GET("/matches/:id", func(c *gin.Context) {
 			id := c.Param("id")
 			matchID, _ := strconv.Atoi(id)
 			match, err := models.GetMatchByID(db, matchID)
 			if err != nil {
+				log.Printf("GetMatchByID error: %v", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch match"})
 				return
 			}
@@ -105,11 +122,13 @@ func main() {
 			}
 			c.JSON(http.StatusOK, match)
 		})
+
 		api.DELETE("/players/:id", func(c *gin.Context) {
 			id := c.Param("id")
 			playerID, _ := strconv.Atoi(id)
 			player, err := models.GetPlayerByID(db, playerID)
 			if err != nil {
+				log.Printf("GetPlayerByID error: %v", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch player"})
 				return
 			}
@@ -118,16 +137,19 @@ func main() {
 				return
 			}
 			if err := models.DeletePlayer(db, playerID); err != nil {
+				log.Printf("DeletePlayer error: %v", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete player"})
 				return
 			}
 			c.Status(http.StatusNoContent)
 		})
+
 		api.DELETE("/matches/:id", func(c *gin.Context) {
 			id := c.Param("id")
 			matchID, _ := strconv.Atoi(id)
 			match, err := models.GetMatchByID(db, matchID)
 			if err != nil {
+				log.Printf("GetMatchByID error: %v", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch match"})
 				return
 			}
@@ -136,11 +158,13 @@ func main() {
 				return
 			}
 			if err := models.DeleteMatch(db, matchID); err != nil {
+				log.Printf("DeleteMatch error: %v", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete match"})
 				return
 			}
 			c.Status(http.StatusNoContent)
 		})
+
 		api.GET("/stats", handlers.GetStats(db))
 	}
 

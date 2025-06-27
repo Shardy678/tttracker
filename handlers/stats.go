@@ -6,6 +6,8 @@ import (
 	"tttracker/models"
 
 	"github.com/gin-gonic/gin"
+
+	"log"
 )
 
 func GetStats(db *sql.DB) gin.HandlerFunc {
@@ -25,9 +27,10 @@ func GetStats(db *sql.DB) gin.HandlerFunc {
         }
 
         // Recent matches
-        rows, err := db.Query("SELECT id, player_a, player_b, score_a, score_b, played_at FROM matches ORDER BY played_at DESC LIMIT 5")
+        rows, err := db.Query("SELECT id, player_a_id, player_b_id, score_a, score_b, played_at FROM matches ORDER BY played_at DESC LIMIT 5")
         if err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch recent matches"})
+            log.Printf("GetStats error: %v", err)
             return
         }
         defer rows.Close()
@@ -35,20 +38,23 @@ func GetStats(db *sql.DB) gin.HandlerFunc {
         var recent []models.Match
         for rows.Next() {
             var m models.Match
-            if err := rows.Scan(&m.ID, &m.PlayerA, &m.PlayerB, &m.ScoreA, &m.ScoreB, &m.PlayedAt); err != nil {
+            if err := rows.Scan(&m.ID, &m.PlayerAID, &m.PlayerBID, &m.ScoreA, &m.ScoreB, &m.PlayedAt); err != nil {
                 c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to scan match"})
                 return
             }
             recent = append(recent, m)
         }
-
+        if err := rows.Err(); err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reading recent matches"})
+            return
+        }
         // Most active player
         var mostActive string
         _ = db.QueryRow(`
             SELECT player FROM (
-                SELECT player_a AS player FROM matches
+                SELECT player_a_id AS player FROM matches
                 UNION ALL
-                SELECT player_b AS player FROM matches
+                SELECT player_b_id AS player FROM matches
             ) GROUP BY player ORDER BY COUNT(*) DESC LIMIT 1
         `).Scan(&mostActive)
 
@@ -57,8 +63,8 @@ func GetStats(db *sql.DB) gin.HandlerFunc {
         _ = db.QueryRow(`
             SELECT winner FROM (
                 SELECT CASE 
-                    WHEN score_a > score_b THEN player_a
-                    WHEN score_b > score_a THEN player_b
+                    WHEN score_a > score_b THEN player_a_id
+                    WHEN score_b > score_a THEN player_b_id
                     ELSE NULL
                 END as winner
                 FROM matches
@@ -80,8 +86,8 @@ func GetStats(db *sql.DB) gin.HandlerFunc {
         var winner, loser string
         _ = db.QueryRow(`
             SELECT ABS(score_a - score_b) as margin, 
-                CASE WHEN score_a > score_b THEN player_a ELSE player_b END as winner,
-                CASE WHEN score_a > score_b THEN player_b ELSE player_a END as loser
+                CASE WHEN score_a > score_b THEN player_a_id ELSE player_b_id END as winner,
+                CASE WHEN score_a > score_b THEN player_b_id ELSE player_a_id END as loser
             FROM matches
             WHERE score_a != score_b
             ORDER BY margin DESC
@@ -96,8 +102,8 @@ func GetStats(db *sql.DB) gin.HandlerFunc {
         leaderRows, err := db.Query(`
             SELECT winner, COUNT(*) as wins FROM (
                 SELECT CASE 
-                    WHEN score_a > score_b THEN player_a
-                    WHEN score_b > score_a THEN player_b
+                    WHEN score_a > score_b THEN player_a_id
+                    WHEN score_b > score_a THEN player_b_id
                     ELSE NULL
                 END as winner
                 FROM matches
