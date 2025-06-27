@@ -6,8 +6,8 @@ type Player = {
 
 type Match = {
   id: number;
-  player_a: number;
-  player_b: number;
+  player_a_id: number;
+  player_b_id: number;
   score_a: number;
   score_b: number;
   played_at: string;
