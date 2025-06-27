@@ -1,0 +1,11 @@
+{
+  "name": "heroku-go-pnpm-app",
+  "scripts": {
+    "heroku-prebuild": "npm install -g pnpm",
+    "heroku-postbuild": "pnpm --prefix frontend install && pnpm --prefix frontend run build && rm -rf static && mkdir static && cp -a frontend/build/. static/"
+  },
+  "engines": {
+    "node": "18.x",
+    "pnpm": "8.x"
+  }
+}

@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"tttracker/models"
@@ -24,10 +25,10 @@ func main() {
 			c.JSON(http.StatusNotFound, gin.H{"error": "API route not found"})
 			return
 		}
-		c.File("./frontend/build/index.html")
+		c.File("./static/index.html")
 	})
 
-	router.Static("/assets", "./frontend/build/assets")
+	router.Static("/assets", "./static/assets")
 
 	api := router.Group("/api")
 	{
@@ -172,7 +173,12 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"message": "Hello, World!"})
 	})
 
-	if err := router.Run(":8080"); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+  		port = "8080"
+	}
+
+	if err := router.Run(":" + port); err != nil {
 		log.Fatalf("Failed to run server: %v", err)
 	}
 }

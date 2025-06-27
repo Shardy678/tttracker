@@ -19,7 +19,7 @@ export default function MatchesPage({ matches, setMatches }: MatchesPageProps) {
   // Fetch players mapping
   async function fetchPlayers() {
     try {
-      const response = await fetch("http://localhost:8080/api/players");
+      const response = await fetch("/api/players");
       if (!response.ok) throw new Error("Failed to fetch players");
       const data: Player[] = await response.json();
       setPlayers(data);
@@ -31,7 +31,7 @@ export default function MatchesPage({ matches, setMatches }: MatchesPageProps) {
   // Fetch matches
   async function fetchMatches() {
     try {
-      const response = await fetch("http://localhost:8080/api/matches");
+      const response = await fetch("api/matches");
       if (!response.ok) throw new Error("Failed to fetch matches");
       const data: Match[] = await response.json();
       setMatches(data);
