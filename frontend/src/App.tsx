@@ -1,10 +1,11 @@
 import { useState } from "react";
 import "./App.css";
-import { Link, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import PlayersPage from "./PlayersPage";
 import MatchesPage from "./MatchesPage";
 import ScoreTracker from "./ScoreTracker";
 import Dashboard from "./Dashboard";
+import Navbar from "./Navbar";
 
 /**
  * The main application component for the TTTracker frontend.
@@ -41,6 +42,7 @@ function App() {
 
   return (
     <>
+      <Navbar />
       <Routes>
         <Route
           path="/players"
@@ -48,23 +50,11 @@ function App() {
         />
         <Route
           path="/matches"
-          element={
-            <MatchesPage
-              matches={matches}
-              setMatches={setMatches}
-              players={players}
-            />
-          }
+          element={<MatchesPage matches={matches} setMatches={setMatches} />}
         />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/tracker" element={<ScoreTracker players={players} />} />
       </Routes>
-      <div>
-        <Link to="/players">Игроки</Link> | <Link to="/matches">Матчи</Link>
-        {" | "}
-        <Link to="/dashboard">Панель управления</Link> |{" "}
-        <Link to="/tracker">Трекер матчей</Link>
-      </div>
     </>
   );
 }
