@@ -1,11 +1,5 @@
 import { useState, useEffect } from "react";
-
-type Player = {
-  id: number;
-  name: string;
-  created_at: string;
-};
-
+import type { Player } from "./utils";
 type ScoreTrackerProps = {
   players: Player[];
 };

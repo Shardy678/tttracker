@@ -4,6 +4,7 @@ import { Link, Route, Routes } from "react-router-dom";
 import PlayersPage from "./PlayersPage";
 import MatchesPage from "./MatchesPage";
 import ScoreTracker from "./ScoreTracker";
+import Dashboard from "./Dashboard";
 
 /**
  * The main application component for the TTTracker frontend.
@@ -55,11 +56,13 @@ function App() {
             />
           }
         />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/tracker" element={<ScoreTracker players={players} />} />
       </Routes>
       <div>
         <Link to="/players">Игроки</Link> | <Link to="/matches">Матчи</Link>
         {" | "}
+        <Link to="/dashboard">Панель управления</Link> |{" "}
         <Link to="/tracker">Трекер матчей</Link>
       </div>
     </>

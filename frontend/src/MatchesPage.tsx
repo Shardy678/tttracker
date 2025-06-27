@@ -1,19 +1,5 @@
 import { useEffect, useState } from "react";
-
-type Match = {
-  id: number;
-  player_a: number;
-  player_b: number;
-  score_a: number;
-  score_b: number;
-  played_at: string;
-};
-
-type Player = {
-  id: number;
-  name: string;
-  created_at: string;
-};
+import type { Player, Match } from "./utils";
 
 type MatchesPageProps = {
   players: Player[];

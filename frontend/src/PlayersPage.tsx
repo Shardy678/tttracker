@@ -1,10 +1,5 @@
 import { useEffect, useState } from "react";
-
-type Player = {
-  id: number;
-  name: string;
-  created_at: string;
-};
+import type { Player } from "./utils";
 
 export default function PlayersPage({
   players,
