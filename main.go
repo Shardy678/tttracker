@@ -7,6 +7,8 @@ import (
 	"tttracker/models"
 	"tttracker/storage"
 
+	"tttracker/handlers"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -139,6 +141,7 @@ func main() {
 			}
 			c.Status(http.StatusNoContent)
 		})
+		api.GET("/stats", handlers.GetStats(db))
 	}
 
 	router.GET("/hello", func(c *gin.Context) {
