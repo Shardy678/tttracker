@@ -124,14 +124,14 @@ export default function MatchesPage({ matches, setMatches }: MatchesPageProps) {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Avg Score</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {Math.round(
-                      matches.reduce(
-                        (sum, m) => sum + m.score_a + m.score_b,
-                        0
-                      ) /
-                        matches.length /
-                        2
-                    )}
+                    {matches.length > 0
+                      ? (
+                          matches.reduce(
+                            (sum, m) => sum + m.score_a + m.score_b,
+                            0
+                          ) / matches.length
+                        ).toFixed(1)
+                      : "0.0"}
                   </p>
                 </div>
               </div>
